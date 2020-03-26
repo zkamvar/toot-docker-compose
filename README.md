@@ -90,3 +90,30 @@ services:
    cannot find Rscript, which means that it may not be sensing the other
    container... which makes a bit of sense because it's not clear where exactly
    it's to be found on the path. 
+
+### Insight
+
+I think a key piece of information I'm missing is the fact that this creates a
+*network* of docker containers. If we look at the python script, we can see on
+line 7:
+
+```python
+cache = redis.Redis(host='redis', port=6379)
+```
+
+That host parameter is saying "connect me to the network named 'host'." This was
+something that was completely lost on me! I didn't realize that redis was 
+supposed to be hosted on a server somewhere (why does my redis hurt? Because
+you've never used it before.) and now it *kind of* makes sense. The question is:
+how do I use this knowledge to execute commands on my.... oh my god! I forgot
+about the fact that we can have makefiles move to a directory before executing!
+Now I can link my directory to the first docker container and run make lesson-md
+on it!
+
+Of course, the problem here is that now it has to install everything :/
+
+Perhaps the solution is to just use rocker/verse and be done with it. That way,
+we are fairly certain to not have to download the whole of CRAN just to run 
+the image. 
+
+
