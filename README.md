@@ -119,6 +119,8 @@ the image.
 
 Okay, so I'm now having problems with linking my folders to the image :/
 
+### IT WORKS 😹 (kinda 👀)
+
 Okay... I fixed things to a degree. This is what my current setup looks like
 (yes, it is ugly, but I don't particularly care at this point because I can
 always clean it up):
