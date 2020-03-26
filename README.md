@@ -23,3 +23,36 @@ explictly stating that you need to add the redis layer on your container, you
 can say "I need the redis image for this to work" and docker-compose will make
 it available for your python app to work.
 
+## How this applies to my situation
+
+I think this is an imperfect hammer for the infrastructure. On the one hand, we
+don't have to create a whole bunch of new containers for each lesson, but we
+still have to deal with the weird inconsistencies with docker a la permissions
+smashing ᕕ( ᐛ )ᕗ. 
+
+This is what I *think* it should look like to build an R lesson that depends on
+the tidyverse (which I don't think we have for stability):
+
+ - Dockerfile
+    ```
+    ARG JEKYLL_VERSION 3.8.5
+    FROM jekyll/jekyll:${JEKYLL_VERSION}
+    COPY . /srv/jekyll/
+    RUN bundle install \
+     && bundle update
+    ```
+ - docker-compose.yml
+   ```
+   version: "3"
+   services:
+     site:
+       build: .
+       ports: 
+         - "4000:4000"
+       command: jekyll serve
+    needs:
+      image: rocker/verse:latest
+      command: bin/knit-lessons.sh
+    ```
+
+Of course, we 
