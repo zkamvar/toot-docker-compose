@@ -167,4 +167,12 @@ CMD bash
 
 
 Now... one of the problems I'm having with this setup is the fact that
-everything is built up front, but never updated 😩.
+everything is built up front, but never updated 😩. It's a bit weird because if
+I were to change one of the RMarkdown files in the `_episodes_rmd/` folders and
+re-run the container, the `needs` container (I should really rename it to
+describe what it actually is: a computer with R on it) will rebuild the
+Rmarkdown and jekyll will re-serve it, but it would never update despite the
+fact that things are clearly being written on my machine from the `needs`, but
+somehow never properly updated on the `site` container :/
+
+I think this will be another exercise for tomorrow!
