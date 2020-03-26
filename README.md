@@ -116,4 +116,32 @@ Perhaps the solution is to just use rocker/verse and be done with it. That way,
 we are fairly certain to not have to download the whole of CRAN just to run 
 the image. 
 
+Okay, so I'm now having problems with linking my folders to the image :/
 
+Okay... I fixed things to a degree. This is what my current setup looks like
+(yes, it is ugly, but I don't particularly care at this point because I can
+always clean it up):
+
+
+```
+version: "3"
+services:
+  site:
+    build: ../Git/tests/zkamvar--carpentries-docker-test
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/srv/jekyll/
+    command: /bin/bash -c "cp ../gems/* . && jekyll serve"
+    depends_on:
+      - needs
+  needs:
+    image: rocker/verse:latest
+    volumes:
+      - .:/home/docker
+    command: make -C /home/docker lesson-md
+
+```
+
+Now... one of the problems I'm having with this setup is the fact that
+everything is built up front, but never updated 😩.
