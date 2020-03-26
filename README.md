@@ -35,7 +35,7 @@ This is what I *think* it should look like to build an R lesson that depends on
 the tidyverse (which I don't think we have for stability):
 
  - Dockerfile
-    ```
+    ```Docker
     ARG JEKYLL_VERSION 3.8.5
     FROM jekyll/jekyll:${JEKYLL_VERSION}
     COPY . /srv/jekyll/
@@ -43,7 +43,7 @@ the tidyverse (which I don't think we have for stability):
      && bundle update
     ```
  - docker-compose.yml
-   ```
+   ```yaml
    version: "3"
    services:
      site:
@@ -64,7 +64,7 @@ contains the gemfiles: `/srv/gems/`. The gems are built from there and the
 container is ready to go. I've written a docker-compose yaml file that looks
 like this in the r-novice-gapminder repo:
 
-```
+```yaml
 version: "3"
 services:
   site:
@@ -124,7 +124,7 @@ Okay... I fixed things to a degree. This is what my current setup looks like
 always clean it up):
 
 
-```
+```yaml
 version: "3"
 services:
   site:
@@ -143,6 +143,26 @@ services:
     command: make -C /home/docker lesson-md
 
 ```
+
+My Dockerfile in the zkamvar--carpentries-docker-test looks like this:
+
+```Docker
+# Explicitly set Jekyll version across all repos
+ARG JEKYLL_VERSION=3.8.5
+FROM jekyll/jekyll:${JEKYLL_VERSION}
+COPY ./Gemfile /srv/gems/Gemfile
+
+WORKDIR /srv
+
+RUN chown jekyll:jekyll gems \
+  && cd gems \
+  && bundle update \
+  && bundle install
+
+WORKDIR /srv/jekyll
+CMD bash
+```
+
 
 Now... one of the problems I'm having with this setup is the fact that
 everything is built up front, but never updated 😩.
