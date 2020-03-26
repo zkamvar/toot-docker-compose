@@ -28,7 +28,8 @@ it available for your python app to work.
 I think this is an imperfect hammer for the infrastructure. On the one hand, we
 don't have to create a whole bunch of new containers for each lesson, but we
 still have to deal with the weird inconsistencies with docker a la permissions
-smashing ᕕ( ᐛ )ᕗ. 
+smashing.     
+ᕕ( ᐛ )ᕗ 
 
 This is what I *think* it should look like to build an R lesson that depends on
 the tidyverse (which I don't think we have for stability):
