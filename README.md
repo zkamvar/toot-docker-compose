@@ -55,4 +55,38 @@ the tidyverse (which I don't think we have for stability):
       command: bin/knit-lessons.sh
     ```
 
-Of course, we 
+### Quirks I'm finding:
+
+I've attempted to write this in such a way that I will first ship a docker
+container that is built on the jekyll container, with a new directory that
+contains the gemfiles: `/srv/gems/`. The gems are built from there and the
+container is ready to go. I've written a docker-compose yaml file that looks
+like this in the r-novice-gapminder repo:
+
+```
+version: "3"
+services:
+  site:
+    image: znk-test
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/srv/jekyll/
+    command: make serve
+    depends_on:
+      - needs
+  needs:
+    image: rocker/verse:latest
+    command: date
+
+```
+
+ - I attempted to build the RMD files on the rocker, but the files are on the
+   jekyll volume. 
+ - If I tried to mount the files on the rocker volume as well, I get in trouble
+   because it defaults to the root directory and you cant execute multiple
+   commands there. 
+ - When I try to run make serve, I'm confronted with docker saying that it
+   cannot find Rscript, which means that it may not be sensing the other
+   container... which makes a bit of sense because it's not clear where exactly
+   it's to be found on the path. 
