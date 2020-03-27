@@ -176,3 +176,38 @@ fact that things are clearly being written on my machine from the `needs`, but
 somehow never properly updated on the `site` container :/
 
 I think this will be another exercise for tomorrow!
+
+
+### Day 2/3 (I'm not sure anymore)
+
+I have destroyed all of the containers and now I'm back to the same familiar
+error:
+
+```
+07:54:57 ~/Documents/Carpentries/swcarpentry--r-novice-gapminder
+(2020-03-26-znk)$ docker-compose up
+Starting swcarpentryrnovicegapminder_needs_1 ... 
+Starting swcarpentryrnovicegapminder_needs_1 ... done
+Starting swcarpentryrnovicegapminder_site_1 ... 
+Starting swcarpentryrnovicegapminder_site_1 ... done
+Attaching to swcarpentryrnovicegapminder_needs_1, swcarpentryrnovicegapminder_site_1
+needs_1  | make: Entering directory '/home/docker'
+needs_1  | make: Nothing to be done for 'lesson-md'.
+needs_1  | make: Leaving directory '/home/docker'
+swcarpentryrnovicegapminder_needs_1 exited with code 0
+site_1   | ruby 2.6.3p62 (2019-04-16 revision 67580) [x86_64-linux-musl]
+site_1   | Configuration file: /srv/jekyll/_config.yml
+site_1   |             Source: /srv/jekyll
+site_1   |        Destination: /srv/jekyll/_site
+site_1   |  Incremental build: disabled. Enable with --incremental
+site_1   |       Generating... 
+site_1   | jekyll 3.8.5 | Error:  Permission denied @ dir_s_mkdir - /srv/jekyll/_site
+swcarpentryrnovicegapminder_site_1 exited with code 1
+```
+
+How fun! Permission issues are going to be a bit of a running theme, I think. 
+
+I'm once again questioning: is this the right hammer I need for the job? The
+problem with rolling a specific dockerfile for each instance is that, well, it
+falls on the maintainer to do that and it's just one more or one new piece of 
+technology that they have to get to know. 
