@@ -121,6 +121,7 @@ curl -L https://api.github.com/repos/swcarpentry/r-novice-gapminder/tarball/914b
 && docker-compose up
 ```
 
+## Methods
 
 Below are my notes as I went through this
 
