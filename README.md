@@ -214,8 +214,7 @@ technology that they have to get to know.
 
 But in the meantime, I've added the dockerfile to the docker registry:
 
-```
-```
+<https://github.com/zkamvar/carpentries-docker-test>
 
 > Three hours later...
 
