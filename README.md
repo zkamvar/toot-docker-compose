@@ -426,3 +426,13 @@ site_1   |   Server running... press ctrl-c to stop.
 ```
 
 Now we just have to see how well this works on my mac.
+
+### On macOS
+
+Well apparently, docker doesn't automatically update a container that's tagged
+latest because I had one from 2018 (before we knew how bad things would get in
+the world and our R scripts from 2011 were still reproducible). When I ran the 
+updated script, it installed rlang (as it normally does), but then threw a lot
+of errors because the version of dplyr in the container was incorrect.
+
+When I ran `docker pull rocker/verse:latest`, it worked.
