@@ -211,3 +211,219 @@ I'm once again questioning: is this the right hammer I need for the job? The
 problem with rolling a specific dockerfile for each instance is that, well, it
 falls on the maintainer to do that and it's just one more or one new piece of 
 technology that they have to get to know. 
+
+But in the meantime, I've added the dockerfile to the docker registry:
+
+```
+```
+
+> Three hours later...
+
+Okay, so the problem was that I had not included `_site/` in my directory
+structure, so it was having problems working. Note: I am currently still
+working in <https://github.com/swcarpentry/r-novice-gapminder> in my own custom
+branch.
+
+I've removed all of the docker containers AND images that I had and cleaned up
+my git session:
+
+```bash
+docker rm $(docker ps -a -q)        # remove all containers
+docker rmi $(docker image ls -a -q) # remove all downloaded images
+git checkout -- . # reset all tracked files to their original states
+git clean -fd     # remove all untracked files
+```
+
+#### Running the container from scratch
+
+I've gotten things to work... sort of. Here is my current setup:
+
+ - Docker container: <https://hub.docker.com/u/zkamvar/carpentries-docker-test>
+ - Make command: 
+    ```make
+    serve-in-container : lesson-md
+      cp ../gems/* . \
+      && ${JEKYLL} serve -d /srv/jekyll/
+    ```
+
+ - docker-compose.yml:
+    ```yaml
+    version: "3"
+    services:
+      site:
+        image: zkamvar/carpentries-docker-test:latest
+        ports:
+          - "4000:4000"
+        volumes:
+          - .:/srv/src/
+        command: make -C ../src serve-in-container
+        depends_on:
+          - needs
+      needs:
+        image: rocker/verse:latest
+        volumes:
+          - .:/home/docker
+        command: make -C /home/docker lesson-md
+    ```
+
+Here's what happens when I run the commands:
+
+```sh
+(2020-03-26-znk)$ docker-compose up
+Pulling needs (rocker/verse:latest)...
+latest: Pulling from rocker/verse
+8f0fdd3eaac0: Pull complete
+c42f03650681: Pull complete
+e8d8a2a587cb: Pull complete
+8070157c9f99: Pull complete
+0a7a0529ec26: Pull complete
+8781e7725be3: Pull complete
+dfd244768473: Pull complete
+0346eddd3dca: Pull complete
+444d6a84b975: Pull complete
+Digest: sha256:ce9e3c004bb2b0d6b5ca6235645b57d540d6012b7e3f5635d0c632c0ebae85af
+Status: Downloaded newer image for rocker/verse:latest
+Pulling site (zkamvar/carpentries-docker-test:latest)...
+latest: Pulling from zkamvar/carpentries-docker-test
+050382585609: Pull complete
+cb9e14f894ff: Pull complete
+78b911433595: Pull complete
+abf8325464c1: Pull complete
+2549eba3f0d0: Pull complete
+44d38c40f9af: Pull complete
+83a7755db110: Pull complete
+e26c08fe8e4d: Pull complete
+Digest: sha256:2716c4fab334d7f89da2ba0e175033f2706208d2b84d3ce05972d8faf58f116a
+Status: Downloaded newer image for zkamvar/carpentries-docker-test:latest
+Creating swcarpentryrnovicegapminder_needs_1 ... 
+Creating swcarpentryrnovicegapminder_needs_1 ... done
+Creating swcarpentryrnovicegapminder_site_1 ... 
+Creating swcarpentryrnovicegapminder_site_1 ... done
+Attaching to swcarpentryrnovicegapminder_needs_1, swcarpentryrnovicegapminder_site_1
+needs_1  | make: Entering directory '/home/docker'
+needs_1  | make: Nothing to be done for 'lesson-md'.
+needs_1  | make: Leaving directory '/home/docker'
+site_1   | make: Entering directory '/srv/src'
+site_1   | cp ../gems/* . \
+site_1   | && jekyll serve -d /srv/jekyll/
+swcarpentryrnovicegapminder_needs_1 exited with code 0
+site_1   | ruby 2.6.3p62 (2019-04-16 revision 67580) [x86_64-linux-musl]
+site_1   | Configuration file: /srv/src/_config.yml
+site_1   |             Source: /srv/src
+site_1   |        Destination: /srv/jekyll/
+site_1   |  Incremental build: disabled. Enable with --incremental
+site_1   |       Generating... 
+site_1   |                     done in 1.796 seconds.
+site_1   |  Auto-regeneration: enabled for '/srv/src'
+site_1   |     Server address: http://0.0.0.0:4000
+site_1   |   Server running... press ctrl-c to stop.
+```
+
+When I look at my files now, I have two untracked files that belong to root
+
+> This may not be the best idea since a user without priviledges cannot remove
+> these files. 
+
+```
+-rw-r--r--  1 root  root  6.8K Mar 27 10:41 Gemfile.lock
+-rw-r--r--  1 root  root   244 Mar 27 10:41 Gemfile
+drwxrwxr-x 18 zhian zhian 4.0K Mar 27 10:41 .
+```
+
+#### Modifying a file
+
+Let's say I modify one of the source RMD files. What happens then? For example,
+I'll change line 78 of the dplyr example:
+
+```diff
+-year_country_gdp <- select(gapminder,year,country,gdpPercap)
++year_country_gdp <- select(gapminder, year, country, gdpPercap)
+```
+
+When I run `docker-compose up` now, I get:
+
+```
+(2020-03-26-znk)$ docker-compose up
+Starting swcarpentryrnovicegapminder_needs_1 ... 
+Starting swcarpentryrnovicegapminder_needs_1 ... done
+Starting swcarpentryrnovicegapminder_site_1 ... 
+Starting swcarpentryrnovicegapminder_site_1 ... done
+Attaching to swcarpentryrnovicegapminder_needs_1, swcarpentryrnovicegapminder_site_1
+needs_1  | make: Entering directory '/home/docker'
+site_1   | make: Entering directory '/srv/src'
+site_1   | bin/knit_lessons.sh: line 7: Rscript: command not found
+site_1   | make: Leaving directory '/srv/src'
+site_1   | make: *** [Makefile:96: _episodes/13-dplyr.md] Error 127
+needs_1  | Downloading GitHub repo hadley/requirements@master
+swcarpentryrnovicegapminder_site_1 exited with code 2
+needs_1  | rlang (0.4.4 -> 0.4.5) [CRAN]
+needs_1  | Installing 1 packages: rlang
+needs_1  | Installing package into ‘/usr/local/lib/R/site-library’
+needs_1  | (as ‘lib’ is unspecified)
+needs_1  | trying URL 'https://cran.rstudio.com/src/contrib/rlang_0.4.5.tar.gz'
+needs_1  | Content type 'application/x-gzip' length 816813 bytes (797 KB)
+needs_1  | ==================================================
+needs_1  | downloaded 797 KB
+needs_1  | 
+
+[ snip ]
+
+needs_1  | * DONE (rlang)
+needs_1  | 
+needs_1  | The downloaded source packages are in
+needs_1  | 	‘/tmp/Rtmp9UeQLV/downloaded_packages’
+✔  checking for file ‘/tmp/Rtmp9UeQLV/remotes73aa0d894/hadley-requirements-79ed4cc/DESCRIPTION’ ...
+─  preparing ‘requirements’:
+
+[ snip ]
+
+needs_1  | * DONE (requirements)
+needs_1  | Loading required package: knitr
+needs_1  | 
+needs_1  | 
+needs_1  | processing file: _episodes_rmd/13-dplyr.Rmd
+
+[ snip ]
+
+needs_1  | output file: _episodes/13-dplyr.md
+needs_1  | 
+needs_1  | Warning message:
+needs_1  | In library(package, lib.loc = lib.loc, character.only = TRUE, logical.return = TRUE,  :
+needs_1  |   there is no package called ‘requirements’
+needs_1  | make: Leaving directory '/home/docker'
+swcarpentryrnovicegapminder_needs_1 exited with code 0
+```
+
+It's clear that both containers started up and successfully ran their processes,
+but the site container did not wait for the R container to finish before it
+attempted to start. How rude!
+
+Of course, if we run `docker-compose up` again, it will be merciful:
+
+```
+(2020-03-26-znk)$ docker-compose up
+Starting swcarpentryrnovicegapminder_needs_1 ... 
+Starting swcarpentryrnovicegapminder_needs_1 ... done
+Starting swcarpentryrnovicegapminder_site_1 ... 
+Starting swcarpentryrnovicegapminder_site_1 ... done
+Attaching to swcarpentryrnovicegapminder_needs_1, swcarpentryrnovicegapminder_site_1
+needs_1  | make: Entering directory '/home/docker'
+needs_1  | make: Nothing to be done for 'lesson-md'.
+needs_1  | make: Leaving directory '/home/docker'
+site_1   | make: Entering directory '/srv/src'
+site_1   | cp ../gems/* . \
+site_1   | && jekyll serve -d /srv/jekyll/
+swcarpentryrnovicegapminder_needs_1 exited with code 0
+site_1   | ruby 2.6.3p62 (2019-04-16 revision 67580) [x86_64-linux-musl]
+site_1   | Configuration file: /srv/src/_config.yml
+site_1   |             Source: /srv/src
+site_1   |        Destination: /srv/jekyll/
+site_1   |  Incremental build: disabled. Enable with --incremental
+site_1   |       Generating... 
+site_1   |                     done in 1.921 seconds.
+site_1   |  Auto-regeneration: enabled for '/srv/src'
+site_1   |     Server address: http://0.0.0.0:4000
+site_1   |   Server running... press ctrl-c to stop.
+```
+
+Now we just have to see how well this works on my mac.
