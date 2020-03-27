@@ -12,7 +12,7 @@ lessons to those who are technically adept. We want to lower the barrier.
 
 This toot is from <https://docs.docker.com/compose/gettingstarted/>. 
 
-## My Notes
+# My notes
 
 I was a bit confused as to what the need for this was, but now I think I get it.
 This is effectivley a way to set up systems that share docker containers on a
@@ -55,6 +55,76 @@ the tidyverse (which I don't think we have for stability):
       image: rocker/verse:latest
       command: bin/knit-lessons.sh
     ```
+
+## Results
+
+To recap where we were with the lessons, the user needs the following on thier
+machine in order to properly build the lessons:
+
+ - Internet connection
+ - lesson template
+ - git (installation pain: low to moderate)
+ - GNU Make (installation pain: high for windows)
+ - Python 3.4 (installation pain: moderate to high)
+ - Ruby + Jekyll (installation pain: moderate to high)
+
+While no one needs to know how the latter three work, it is expected that folks
+understand how to use Git and Github to work with the lesson template and 
+generate a lesson. 
+
+Remember, we want users to be able to contribute lessons by just writing
+markdown and not having to worry about any details that are more technical than
+their lessons. 
+
+The path that I thought about having was to use [docker-compose](https://docs.docker.com/compose/install/) to build everything. This way, the user only needs the following:
+
+ - Internet connection
+ - [Docker](https://docs.docker.com/install/#desktop)
+ - lesson template
+ - git (N.B. this is *optional* with this setup)
+
+This is the current setup in the <https://github.com/swcarpentry/r-novice-gapminder/tree/2020-03-26-znk> repository:
+
+ - Docker container: <https://hub.docker.com/u/zkamvar/carpentries-docker-test>
+ - Make command: 
+    ```make
+    serve-in-container : lesson-md
+      cp ../gems/* . \
+      && ${JEKYLL} serve -d /srv/jekyll/
+    ```
+ - docker-compose.yml:
+    ```yaml
+    version: "3"
+    services:
+      site:
+        image: zkamvar/carpentries-docker-test:latest
+        ports:
+          - "4000:4000"
+        volumes:
+          - .:/srv/src/
+        command: make -C ../src serve-in-container
+        depends_on:
+          - needs
+      needs:
+        image: rocker/verse:latest
+        volumes:
+          - .:/home/docker
+        command: make -C /home/docker lesson-md
+    ```
+
+
+We can run the following command to see how this works:
+
+```bash
+curl -L https://api.github.com/repos/swcarpentry/r-novice-gapminder/tarball/914b882 | tar -xvz \
+&& cd swcarpentry-r-novice-gapminder-914b882 \
+&& docker-compose up
+```
+
+
+Below are my notes as I went through this
+
+--------------------------------------------------------------------------------
 
 ### Quirks I'm finding:
 
@@ -436,3 +506,5 @@ updated script, it installed rlang (as it normally does), but then threw a lot
 of errors because the version of dplyr in the container was incorrect.
 
 When I ran `docker pull rocker/verse:latest`, it worked.
+
+
